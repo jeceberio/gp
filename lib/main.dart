@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'api.dart';
 
 void main() => runApp(new MyApp());
 
@@ -56,7 +57,10 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    dataCacher = new ProductCacher();
+    dataCacher = new ProductCacher(() => setState((){}));
+    dataCacher.getTotal().then((res){
+      setState((){});
+    });
   }
 
   @override
@@ -65,9 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
         itemCount: dataCacher._total,
         itemBuilder: (BuildContext context, int index) {
           var data = dataCacher._getData(index);
-          return new ListTile(
-            title: new Text(data.id.toString() + ' / ' + data.name),
-          );
+          if (data != null) {
+            return new ListTile(
+              title: new Text(data.id.toString() + ' / ' + data.name),
+              //title: new Text('hola'),
+            );
+          };
         });
 
     return new Scaffold(
@@ -84,44 +91,99 @@ class Data {
   int id;
 
   Data(Map<String, dynamic> values){
-    id = values['id'];
+    if (values.isEmpty) {
+      id = 0;
+      //image_small = BASE64.decode(tempImage);
+    } else {
+      id = values['id'];
+    }
   }
 
 }
 
 class Product extends Data {
-  //int id; NO HAY QUE PONER EL ID OTRA VEZ, POR HERENCIA DE DATA
   String name;
 
   Product(Map<String, dynamic> values): super(values){
-    //id = index;
-    name = values['name'];
+    if (values.isEmpty) {
+      name = "Loading...";
+      //image_small = BASE64.decode(tempImage);
+    } else {
+      name = new Utf8Decoder().convert(values['name'].codeUnits);
+      /*
+      var temp;
+      if (map['image_small'] != false) {
+        temp = map['image_small'].replaceAll("\n", "").replaceAll("\r\n", "");
+      }
+      else {
+        temp = tempImage;
+      }
+      image_small = BASE64.decode(temp);
+       */
+    }
   }
 
 }
 
-
+typedef void RepaintCallback();
 typedef S ItemCreator<S>(Map<String, dynamic> values);
 
 class DataCacher<T> {
-  //var cacheddata;
+  var cacheddata;
   ItemCreator<T> creator;
-  //var offsetLoaded = new Map<int, bool>();
-  int _total = 7;
+  var offsetLoaded = new Map<int, bool>();
+  int _total = -1;
+  final RepaintCallback callback;
+  var api = new Api();
 
-  DataCacher(ItemCreator<T> this.creator);
-
-  T _getData(int index) {
-    var values = new Map<String, dynamic>();
-    values['id'] = index;
-    values['name'] = index.toString();
-    return creator(values);
+  DataCacher(this.callback, ItemCreator<T> this.creator){
+    cacheddata = new Map<int, T>();
   }
 
+  T _getData(int index) {
+    T data = cacheddata[index];
+    if (data == null) {
+      int offset = index ~/ 5 * 5;
+      if (!offsetLoaded.containsKey(offset)) {
+        offsetLoaded.putIfAbsent(offset, () => true);
+        api.getDatas(offset, 5)
+            .then((List valuesList) {
+              if (valuesList != null && valuesList.isNotEmpty) {
+                _updateDatas(offset, valuesList);
+              } else {
+                //TODO
+              }
+            });
+      }
+    }
+    return data;
+  }
+
+  Future getTotal() async {
+    _total = await api.getTotal();
+    return true;
+  }
+
+  void _updateDatas(int offset, List valuesList) {
+    var datas = new List<T>();
+    //valuesList.forEach((Map<String, dynamic> map) => datas.add(creator(map));
+    valuesList.forEach((element) => datas.add(creator(element)));
+    /*var jsonOne = valuesList[0];
+    print(jsonOne);
+    T dataOne = creator(jsonOne);
+    datas.add(dataOne);
+    */
+    //
+    for (int i = 0; i < datas.length; i++) {
+      cacheddata.putIfAbsent(offset + i, () => datas[i]);
+    }
+    // avisamos de que se ha cargado nuevos datos para que se redibuje el padre
+    callback();
+  }
 }
 
 class ProductCacher extends DataCacher {
-  ProductCacher(): super((map)=> new Product(map));
+  ProductCacher(callback): super(callback,(map)=> new Product(map));
 }
 
 
