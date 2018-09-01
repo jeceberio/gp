@@ -1,4 +1,4 @@
-//cacher generico sin herencia
+//cacher generico con herencia
 
 
 import 'dart:async';
@@ -55,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    dataCacher = new ProductCacher<Product>((index)=> new Product(index));
+    dataCacher = new ProductCacher();
   }
 
   @override
@@ -101,7 +101,7 @@ class Product extends Data {
 
 
 typedef S ItemCreator<S>(int index);
-
+/*
 class DataCacher<T> {
   //var cacheddata;
   ItemCreator<T> creator;
@@ -115,18 +115,30 @@ class DataCacher<T> {
   }
 
 }
-
-class ProductCacher<T> {
+*/
+class DataCacher<T> {
   //var cacheddata;
   ItemCreator<T> creator;
   //var offsetLoaded = new Map<int, bool>();
   int _total = 7;
 
-  ProductCacher(ItemCreator<T> this.creator);
+  DataCacher(ItemCreator<T> this.creator);
 
   T _getData(int index) {
     return creator(index);
   }
 
 }
+
+class ProductCacher extends DataCacher {
+  //var cacheddata;
+  //ItemCreator<T> creator;
+  //var offsetLoaded = new Map<int, bool>();
+  //int _total = 7;
+
+  ProductCacher(): super((index)=> new Product(index));
+
+
+}
+
 
