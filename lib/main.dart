@@ -1,4 +1,5 @@
 //cacher generico con herencia
+//OJO a que el constructor de product NO tiene el index y funciona, pq lo hace el super
 
 
 import 'dart:async';
@@ -65,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
         itemBuilder: (BuildContext context, int index) {
           var data = dataCacher._getData(index);
           return new ListTile(
-            title: new Text(data.name),
+            title: new Text(data.id.toString() + '-' + data.name),
           );
         });
 
@@ -93,7 +94,7 @@ class Product extends Data {
   String name;
 
   Product(int index): super(index){
-    id = index;
+    //id = index;
     name = index.toString();
   }
 
@@ -101,21 +102,7 @@ class Product extends Data {
 
 
 typedef S ItemCreator<S>(int index);
-/*
-class DataCacher<T> {
-  //var cacheddata;
-  ItemCreator<T> creator;
-  //var offsetLoaded = new Map<int, bool>();
-  int _total = 7;
 
-  DataCacher();
-
-  T _getData(int index) {
-    return creator(index);
-  }
-
-}
-*/
 class DataCacher<T> {
   //var cacheddata;
   ItemCreator<T> creator;
@@ -137,8 +124,6 @@ class ProductCacher extends DataCacher {
   //int _total = 7;
 
   ProductCacher(): super((index)=> new Product(index));
-
-
 }
 
 
