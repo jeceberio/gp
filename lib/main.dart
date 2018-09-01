@@ -1,6 +1,6 @@
 //cacher generico con herencia
 //OJO a que el constructor de product NO tiene el index y funciona, pq lo hace el super
-
+// metidos map
 
 import 'dart:async';
 import 'dart:convert';
@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
         itemBuilder: (BuildContext context, int index) {
           var data = dataCacher._getData(index);
           return new ListTile(
-            title: new Text(data.id.toString() + '-' + data.name),
+            title: new Text(data.id.toString() + ' / ' + data.name),
           );
         });
 
@@ -83,25 +83,25 @@ class _MyHomePageState extends State<MyHomePage> {
 class Data {
   int id;
 
-  Data(int index){
-    id = index;
+  Data(Map<String, dynamic> values){
+    id = values['id'];
   }
 
 }
 
 class Product extends Data {
-  int id;
+  //int id; NO HAY QUE PONER EL ID OTRA VEZ, POR HERENCIA DE DATA
   String name;
 
-  Product(int index): super(index){
+  Product(Map<String, dynamic> values): super(values){
     //id = index;
-    name = index.toString();
+    name = values['name'];
   }
 
 }
 
 
-typedef S ItemCreator<S>(int index);
+typedef S ItemCreator<S>(Map<String, dynamic> values);
 
 class DataCacher<T> {
   //var cacheddata;
@@ -112,18 +112,16 @@ class DataCacher<T> {
   DataCacher(ItemCreator<T> this.creator);
 
   T _getData(int index) {
-    return creator(index);
+    var values = new Map<String, dynamic>();
+    values['id'] = index;
+    values['name'] = index.toString();
+    return creator(values);
   }
 
 }
 
 class ProductCacher extends DataCacher {
-  //var cacheddata;
-  //ItemCreator<T> creator;
-  //var offsetLoaded = new Map<int, bool>();
-  //int _total = 7;
-
-  ProductCacher(): super((index)=> new Product(index));
+  ProductCacher(): super((map)=> new Product(map));
 }
 
 
