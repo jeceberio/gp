@@ -1,4 +1,4 @@
-// anyado un unico cacher, sin herencia
+// anyado cacher con herencia
 
 
 import 'dart:async';
@@ -102,7 +102,21 @@ class Product extends Data {
 
 //typedef S ItemCreator<S>(Map map);
 
-class ProductCacher {
+class DataCacher {
+  //var cacheddata;
+  //ItemCreator<T> creator;
+  //var offsetLoaded = new Map<int, bool>();
+  int _total = 7;
+
+  DataCacher();
+
+  Data _getData(int index) {
+    return new Data(index);
+  }
+
+}
+
+class ProductCacher extends DataCacher {
   //var cacheddata;
   //ItemCreator<T> creator;
   //var offsetLoaded = new Map<int, bool>();
