@@ -1,4 +1,4 @@
-//solo tenemos una herencia simple y presentamos product
+// anyado un unico cacher, sin herencia
 
 
 import 'dart:async';
@@ -50,14 +50,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  ProductCacher dataCacher;
+
+  @override
+  void initState() {
+    super.initState();
+    dataCacher = new ProductCacher();
+  }
 
   @override
   Widget build(BuildContext context) {
-    print("build");
     var listView = new ListView.builder(
-        itemCount: 7,
+        itemCount: dataCacher._total,
         itemBuilder: (BuildContext context, int index) {
-          var data = new Product(index);
+          var data = dataCacher._getData(index);
           return new ListTile(
             title: new Text(data.name),
           );
@@ -89,6 +95,23 @@ class Product extends Data {
   Product(int index): super(index){
     id = index;
     name = index.toString();
+  }
+
+}
+
+
+//typedef S ItemCreator<S>(Map map);
+
+class ProductCacher {
+  //var cacheddata;
+  //ItemCreator<T> creator;
+  //var offsetLoaded = new Map<int, bool>();
+  int _total = 7;
+
+  ProductCacher();
+
+  Product _getData(int index) {
+    return new Product(index);
   }
 
 }
