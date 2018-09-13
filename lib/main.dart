@@ -2,32 +2,48 @@
 //OJO a que el constructor de product NO tiene el index y funciona, pq lo hace el super
 // metidos map
 
-import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'api.dart';
-import 'login.dart';
 
-void main() => runApp(new MyApp());
+import 'package:fluro/fluro.dart';
+import 'package:prueba_closure/pages/home.dart';
+import 'package:prueba_closure/pages/login.dart';
+import 'package:prueba_closure/pages/signup.dart';
+import 'package:prueba_closure/pages/forgot.dart';
 
+//void main() => runApp(new MyApp());
+void main() {
+  Router router = new Router();
+  router.define('home', handler: new Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+    return new HomePage();
+  }));
+  router.define('login', handler: new Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+    return new LoginPage();
+  }));
+  router.define('signup', handler: new Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+    return new SignupPage();
+  }));
+  router.define('forgot', handler: new Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+    return new ForgotPage();
+  }));
+
+  runApp(new MaterialApp(
+      title: 'groupiki',
+      theme: new ThemeData(
+        primarySwatch: Colors.lime,
+      ),
+      home: new HomePage(),
+      onGenerateRoute: router.generator // Use our Fluro routers for this app.
+  ));
+}
+/*
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
+      title: 'groupiki',
       theme: new ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.lime,
       ),
       home: new Container( child: new LoginScreen3(), ),//new MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -187,4 +203,4 @@ class ProductCacher extends DataCacher {
   ProductCacher(callback): super(callback,(map)=> new Product(map));
 }
 
-
+*/
