@@ -1,6 +1,5 @@
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -9,16 +8,32 @@ import 'package:prueba_closure/utils/utils.dart';
 
 
 class Api {
-  static final urlA = 'http://demo.digital5.es:8069/xmlrpc/2/common';
-  static final urlB = 'http://demo.digital5.es:8069/xmlrpc/2/object';
-  static final db = 'ltz_v01';
+  static final urlA = 'http://10.0.2.2:8069/xmlrpc/2/common';
+  static final urlB = 'http://10.0.2.2:8069/xmlrpc/2/object';
+  // 10.0.2.2 es el localhost de la VM
+  static final db = 'gp_1';
   static final clientVersion = '0.1';
 
-  Future getUid() async {
+  /*
+  read the uid from the localStorage
+    it should be an int because it is not written in any other case
+   */
+  Future<int> getUid() async {
     Completer completer = new Completer();
     final _storage = new LocalStorage();
     var _uid = await _storage.readValue('uid');
     completer.complete(_uid);
+    return completer.future;
+  }
+
+  /*
+  read the password from the localStorage
+   */
+  Future<String> getPass() async {
+    Completer completer = new Completer();
+    final _storage = new LocalStorage();
+    var _pass = await _storage.readValue('password');
+    completer.complete(_pass);
     return completer.future;
   }
 
@@ -55,6 +70,7 @@ class Api {
           } else {
             final _storage = new LocalStorage();
             _storage.writeValue('uid', uid);
+            _storage.writeValue('password', pass);
             completer.complete(true);
           }
         }).catchError((errorAuth) {
@@ -69,7 +85,7 @@ class Api {
   }
 
   // TODO: method that creates a new user
-  Future<int> newuser(String user, String pass) async {
+  Future<int> newUser(String user, String pass) async {
     Completer completer = new Completer();
     xml_rpc.call(urlA, 'version', []).then((result) {
       xml_rpc.call(urlA, 'authenticate',
@@ -87,7 +103,7 @@ class Api {
   }
 
   // TODO: method that sends user an email to get a new pass
-  Future<int> resenduser(String user) async {
+  Future<int> resendUser(String user) async {
     Completer completer = new Completer();
     xml_rpc.call(urlA, 'version', []).then((result) {
       xml_rpc.call(urlA, 'authenticate',
@@ -104,63 +120,74 @@ class Api {
     return completer.future;
   }
 
-  // TODO: search and read combined
-  Future<List> searchRead(String model, List<String> fields, List args,
-      Map kwargs, int offset, int limit) async {
-  }
-
-  //TODO: search with a count
-  Future<List> searchCount(String model, List args, Map kwargs) async {
-    // 10.0.2.2 es el localhost de la VM
+  /* search with a read
+  OJO: el fields esta en el server, por seguridad
+  devuelve lista de diccionarios si va bien
+           -1: error de servidor caido
+           -2: error de autenticacion
+  */
+  Future<List> searchRead(String model, {List args, Map kwargs, int offset=0, int limit=25}) async {
+    if (args == null) args = [];
+    if (kwargs == null) kwargs = {};
     Completer completer = new Completer();
-    checkOnline().then((isOnline) {
+    checkOnline().then((isOnline) async {
       if (isOnline) {
-        var uid = getUid();
-        if (uid==false) {
-          var a = 4;
-        } else {
-          var a = 17;
-        }
-
-
+        // the real search
+        var uid = await getUid();
+        var pass = await getPass();
+        xml_rpc.call(urlB, 'execute_kw', [db, uid, pass, model, 'gp_search_read',
+        [args], kwargs // we need to put the version in the kwargs
+        ]).then((result) {
+          print('searchRead ' + model + ": ");
+          print(result);
+          completer.complete(result);
+        }).catchError((error3) {
+          print(error3);
+          completer.complete(-2);
+        });
+        // finish real search
       } else {
-        completer.complete(null);
+        completer.complete(-1);
       }
     });
     return completer.future;
+  }
 
-    xml_rpc.call(urlA, 'version', []).then((result) {
-      print(result);
-      xml_rpc.call(urlA, 'authenticate',
-          ['ltz_v01', 'admin', 'XXX', {}]).then((uid) {
-        xml_rpc.call(urlB, 'execute_kw', [
-          'ltz_v01',
-          uid,
-          'XXX',
-          'product.template',
-          'search_count',
-          [[]],
-          {}
-        ]).then((result3) {
-          int no_final = result3;
-          print('devuelven no productos:');
-          print(result3);
-          completer.complete(no_final);
-        }).catchError((error3) {
-          print(error3);
-          completer.complete(null);
-        });
-      }).catchError((error2) {
-        print(error2);
-        completer.complete(null);
-      });
-    }).catchError((error) {
-      print(error);
-      completer.complete(null);
+  /* search with a count
+  devuelve siempre int, usando negativos para errores
+           -1: error de servidor caido
+           -2: error de autenticacion
+    si es un int 0 o superior es que ha ido bien y es real
+  */
+  Future<int> searchCount(String model, {List args, Map kwargs}) async {
+    if (args == null) args = [];
+    if (kwargs == null) kwargs = {};
+    Completer completer = new Completer();
+    kwargs['count'] = true;
+    checkOnline().then((isOnline) async {
+      if (isOnline) {
+        // the real search
+        int uid = await getUid();
+        var pass = await getPass();
+        xml_rpc.call(urlB, 'execute_kw', [db, uid, pass, model, 'gp_search',
+            [args], kwargs // we need to put the version in the kwargs
+          ]).then((result) {
+            int no_final = result;
+            print('searchCount ' + model + ": ");
+            print(result);
+            completer.complete(no_final);
+          }).catchError((error3) {
+            print(error3);
+            completer.complete(-2);
+          });
+          // finish real search
+      } else {
+        completer.complete(-1);
+      }
     });
     return completer.future;
   }
-
+/*
   Future<List> getDatas(int offset, int limit) async {
     // 10.0.2.2 es el localhost de la VM
     Completer completer = new Completer();
@@ -225,7 +252,8 @@ class Api {
     });
     return completer.future;
   }
-
+*/
+/*
   Future<int> getTotal() async {
     // 10.0.2.2 es el localhost de la VM
     Completer completer = new Completer();
@@ -261,5 +289,6 @@ class Api {
     });
     return completer.future;
   }
+  */
 }
 

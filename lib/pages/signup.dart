@@ -296,7 +296,7 @@ class _SignupPageState extends State<SignupPage> {
       content = "Password and confirm do not match. Please try again.";
     } else {
       var api = new Api();
-      var result = await api.newuser(user, pass);
+      var result = await api.newUser(user, pass);
       if (result==null) {
         content = "We are having problems login in. Please try again in some minutes.";
       } else {

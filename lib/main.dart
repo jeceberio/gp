@@ -9,6 +9,7 @@ import 'package:prueba_closure/pages/home.dart';
 import 'package:prueba_closure/pages/login.dart';
 import 'package:prueba_closure/pages/signup.dart';
 import 'package:prueba_closure/pages/forgot.dart';
+import 'package:prueba_closure/pages/postList.dart';
 
 //void main() => runApp(new MyApp());
 void main() {
@@ -24,6 +25,9 @@ void main() {
   }));
   router.define('forgot', handler: new Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
     return new ForgotPage();
+  }));
+  router.define('postList', handler: new Handler(handlerFunc: (BuildContext context, Map<String, dynamic> params) {
+    return new PostList();
   }));
 
   runApp(new MaterialApp(

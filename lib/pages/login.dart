@@ -261,8 +261,7 @@ class _LoginPageState extends State<LoginPage> {
       } else if (result==false) {
         content = "We do not have such a user or the password is not valid. Please try again.";
       } else {
-        //TODO: new window
-        Navigator.pushNamed(context, 'signup');
+        Navigator.pushNamed(context, 'postList');
       }
     }
 

@@ -173,7 +173,7 @@ class _ForgotPageState extends State<ForgotPage> {
       content = "The user should be an email. Please try again.";
     } else {
       var api = new Api();
-      var result = await api.resenduser(user);
+      var result = await api.resendUser(user);
       if (result==null) {
         content = "We are having problems login in. Please try again in some minutes.";
       } else {

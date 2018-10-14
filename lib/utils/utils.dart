@@ -63,7 +63,9 @@ class LocalStorage {
   Future readValue(String key) async {
     String value = await storage.read(key: key);
     var value2;
-    if (value.substring(3,4)=="_") {
+    if (value==null) {
+      value2 = '';
+    } else if (value.substring(3,4)=="_") {
       var prefix = value.substring(0,3);
       value = value.substring(4,value.length);
       if (prefix == "int") {
@@ -76,13 +78,14 @@ class LocalStorage {
         value2 = json.decode(value);
       } else if (prefix == "map") {
         value2 = json.decode(value);
+      } else if (prefix == "str") {
+        value2 = value;
       }
     } else {
       value2 = value;
     }
     return value2;
   }
-
 }
 
 /*
